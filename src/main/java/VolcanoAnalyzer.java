@@ -3,10 +3,16 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.xml.validation.Validator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -42,13 +48,61 @@ public class VolcanoAnalyzer {
         return data;
     }
 
-    // add methods here to meet the requirements in README.md
-
-    public static void main(String args[]) throws IOException, URISyntaxException {
-        VolcanoAnalyzer a = new VolcanoAnalyzer();
-        // a.loadVolcanoes(Optional.empty());
-        a.eruptedInEighties();
-        // a.numbVolcanoes();
+    public String[] highVEI(){
+        return volcanos.stream().filter(n -> n.getVEI() >= 6).map(n -> n.getName()).collect(Collectors.toList()).toArray(String[]::new);
+        // return data;
     }
 
+    public Volcano mostDeadly(){
+        Optional<Volcano> data = volcanos.stream()
+        .filter(n -> !n.getDEATHS().isEmpty())
+        .max(Comparator.comparingInt(a -> Integer.parseInt(a.getDEATHS())));
+        return data.orElse(null);
+    }
+
+    public double causedTsunami(){
+        return volcanos.stream().filter(v -> !v.getTsu().isEmpty()).count() *100 / volcanos.size();
+    }
+
+    public String mostCommonType(){
+        // HashMap <String,Integer> str = new HashMap<String, Integer>();
+        // Stream<Volcano> data = volcanos.stream();
+        // str.put(data.getType(), 1);
+        // data.forEach(n -> n.getType());
+        // return "";
+        return  volcanos.stream()
+        .collect(Collectors.groupingBy(Volcano::getType, Collectors.counting()))
+        .entrySet().stream()
+        .max(Map.Entry.comparingByValue())
+        .map(Map.Entry::getKey)
+        .orElse(null);
+
+    }
+
+    public int eruptionsByCountry(String country){
+        
+        return (int) volcanos.stream()
+        .filter(n -> n.getCountry().equalsIgnoreCase(country)).count();
+    }
+
+    public double averageElevation(){
+       return volcanos.stream().mapToDouble( Volcano :: getElevation).average().orElse(0);
+    }
+
+    public String[] volcanoTypes(){
+        return volcanos.stream().map(Volcano :: getType).distinct().toArray(String[] :: new);
+    }
+    // add methods here to meet the requirements in README.md
+
+    public double percentNorth() {
+       double value =  volcanos.stream().filter(n -> n.getLatitude() > 0 ).count();
+        return value/volcanos.size()*100;
+    }
+
+    // public static void main(String args[]) throws IOException, URISyntaxException {
+    //     VolcanoAnalyzer a = new VolcanoAnalyzer();
+    //     // a.loadVolcanoes(Optional.empty());
+    //     a.eruptedInEighties();
+    //     // a.numbVolcanoes();
+    // }
 }
